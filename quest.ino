@@ -46,6 +46,7 @@ byte ssPins[] = {SS_1_PIN, SS_2_PIN, SS_3_PIN};
 
 // Create an MFRC522 instance :
 MFRC522 mfrc522[NR_OF_READERS];
+void(* resetFunc) (void) = 0;
 
 /**
    Initialize.
@@ -61,7 +62,6 @@ void setup() {
   pinMode(relayIN, OUTPUT);
   digitalWrite(relayIN, HIGH);
 
-
   /* looking for MFRC522 readers */
   for (int reader = 0; reader < NR_OF_READERS; reader++) {
     mfrc522[reader].PCD_Init(ssPins[reader], RST_PIN);
@@ -73,7 +73,21 @@ void setup() {
   }
 }
 
+int delayTime = 2000;
+int ITERATIONS = 0;
+int possibleIteration = (30 * 600000) / delayTime;
+
 void loop() {
+  ITERATIONS++;
+
+  Serial.println(ITERATIONS);
+  Serial.println(possibleIteration);
+
+  if (ITERATIONS > possibleIteration) {
+    Serial.println("RESET");
+    resetFunc();
+  }
+
   int cards = 0;
 
   for (int reader = 0; reader < NR_OF_READERS; reader++) {
@@ -92,14 +106,14 @@ void loop() {
     Serial.println();
   }
 
-  if (cards == NR_OF_READERS){
+  if (cards == NR_OF_READERS) {
     OpenDoor();
   } else {
     CloseDoor();
   }
 
   // Set some delay to don't do checks to often
-  delay(2000);
+  delay(delayTime);
 }
 
 void OpenDoor()
